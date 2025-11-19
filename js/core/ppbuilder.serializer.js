@@ -1,8 +1,6 @@
 /**
  * ============================================================================
- * PP BUILDER - GRAPES
-
-JS ↔ DATAVERSE SERIALIZER
+ * PP BUILDER - GRAPESJS ↔ DATAVERSE SERIALIZER
  * ============================================================================
  *
  * Converts between GrapesJS component format and Dataverse block format.
@@ -32,9 +30,7 @@ export class PPBuilderSerializer {
   }
 
   // ==========================================================================
-  // DATAVERSE → GRAPES
-
-JS (LOAD)
+  // DATAVERSE → GRAPESJS (LOAD)
   // ==========================================================================
 
   /**
