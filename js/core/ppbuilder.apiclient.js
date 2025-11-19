@@ -87,8 +87,8 @@ export class PPBuilderAPIClient {
    */
   async getPages(options = {}) {
     const query = this._buildQuery({
-      filter: options.filter || 'pp_isactive eq true and statecode eq 0',
-      orderby: options.orderby || 'pp_name',
+      filter: options.filter || 'statecode eq 0',
+      orderby: options.orderby || 'pp_title',
       ...options
     });
 
@@ -109,7 +109,7 @@ export class PPBuilderAPIClient {
    */
   async getPageBySlug(slug) {
     const pages = await this.getPages({
-      filter: `pp_slug eq '${slug}' and pp_isactive eq true and statecode eq 0`,
+      filter: `pp_slug eq '${slug}' and pp_status eq true and statecode eq 0`,
       top: 1
     });
     return pages.length > 0 ? pages[0] : null;
@@ -120,11 +120,11 @@ export class PPBuilderAPIClient {
    */
   async createPage(pageData) {
     const payload = {
-      pp_name: pageData.name,
+      pp_title: pageData.name,
       pp_slug: pageData.slug,
       pp_title: pageData.title || pageData.name,
       pp_metadescription: pageData.metaDescription || '',
-      pp_isactive: pageData.isActive !== undefined ? pageData.isActive : true
+      pp_status: pageData.isActive !== undefined ? pageData.isActive : true
     };
 
     return await this._fetch(`${this.baseURL}/pp_pages`, {
@@ -138,11 +138,11 @@ export class PPBuilderAPIClient {
    */
   async updatePage(pageId, updates) {
     const payload = {};
-    if (updates.name) payload.pp_name = updates.name;
+    if (updates.name) payload.pp_title = updates.name;
     if (updates.slug) payload.pp_slug = updates.slug;
     if (updates.title) payload.pp_title = updates.title;
     if (updates.metaDescription !== undefined) payload.pp_metadescription = updates.metaDescription;
-    if (updates.isActive !== undefined) payload.pp_isactive = updates.isActive;
+    if (updates.isActive !== undefined) payload.pp_status = updates.isActive;
 
     return await this._fetch(`${this.baseURL}/pp_pages(${pageId})`, {
       method: 'PATCH',
@@ -169,7 +169,7 @@ export class PPBuilderAPIClient {
   async getPageVersions(pageId, options = {}) {
     const query = this._buildQuery({
       filter: `_pp_pageid_value eq ${pageId} and statecode eq 0`,
-      orderby: options.orderby || 'pp_versionnumber desc',
+      orderby: options.orderby || 'pp_createdon desc',
       ...options
     });
 
@@ -182,7 +182,7 @@ export class PPBuilderAPIClient {
    */
   async getActivePageVersion(pageId) {
     const versions = await this.getPageVersions(pageId, {
-      orderby: 'pp_status desc, pp_versionnumber desc',
+      orderby: 'pp_status desc, pp_createdon desc',
       top: 1
     });
 
@@ -195,7 +195,7 @@ export class PPBuilderAPIClient {
   async getDraftPageVersion(pageId) {
     const versions = await this.getPageVersions(pageId, {
       filter: `_pp_pageid_value eq ${pageId} and pp_status eq 1 and statecode eq 0`,
-      orderby: 'pp_versionnumber desc',
+      orderby: 'pp_createdon desc',
       top: 1
     });
 
@@ -208,7 +208,7 @@ export class PPBuilderAPIClient {
   async getPublishedPageVersion(pageId) {
     const versions = await this.getPageVersions(pageId, {
       filter: `_pp_pageid_value eq ${pageId} and pp_status eq 2 and statecode eq 0`,
-      orderby: 'pp_versionnumber desc',
+      orderby: 'pp_createdon desc',
       top: 1
     });
 
@@ -221,15 +221,15 @@ export class PPBuilderAPIClient {
   async createPageVersion(versionData) {
     const payload = {
       'pp_pageid@odata.bind': `/pp_pages(${versionData.pageId})`,
-      pp_name: versionData.name,
-      pp_versionnumber: versionData.versionNumber,
+      pp_title: versionData.name,
+      pp_createdon: versionData.versionNumber,
       pp_status: versionData.status || 1, // 1=Draft, 2=Published, 3=Archived
       pp_ispublished: versionData.status === 2,
       pp_settings: versionData.settings ? JSON.stringify(versionData.settings) : null
     };
 
     if (versionData.status === 2) {
-      payload.pp_publishedon = new Date().toISOString();
+      payload.pp_createdon = new Date().toISOString();
     }
 
     return await this._fetch(`${this.baseURL}/pp_versions`, {
@@ -243,12 +243,12 @@ export class PPBuilderAPIClient {
    */
   async updatePageVersion(versionId, updates) {
     const payload = {};
-    if (updates.name) payload.pp_name = updates.name;
+    if (updates.name) payload.pp_title = updates.name;
     if (updates.status !== undefined) {
       payload.pp_status = updates.status;
       payload.pp_ispublished = updates.status === 2;
       if (updates.status === 2) {
-        payload.pp_publishedon = new Date().toISOString();
+        payload.pp_createdon = new Date().toISOString();
       }
     }
     if (updates.settings) payload.pp_settings = JSON.stringify(updates.settings);
@@ -277,7 +277,7 @@ export class PPBuilderAPIClient {
    */
   async getBlocks(versionId, options = {}) {
     const query = this._buildQuery({
-      filter: `_pp_versionid_value eq ${versionId} and pp_isactive eq true and statecode eq 0`,
+      filter: `_pp_versionid_value eq ${versionId} and pp_status eq true and statecode eq 0`,
       orderby: options.orderby || 'pp_order',
       ...options
     });
@@ -299,12 +299,12 @@ export class PPBuilderAPIClient {
   async createBlock(blockData) {
     const payload = {
       'pp_versionid@odata.bind': `/pp_versions(${blockData.pageversionId})`,
-      pp_name: blockData.name,
+      pp_title: blockData.name,
       pp_type: blockData.templateName,
       pp_blocktype: blockData.blockType,
       pp_order: blockData.sortOrder || 0,
       pp_data: blockData.settings ? JSON.stringify(blockData.settings) : '{}',
-      pp_isactive: blockData.isActive !== undefined ? blockData.isActive : true
+      pp_status: blockData.isActive !== undefined ? blockData.isActive : true
     };
 
     if (blockData.parentBlockId) {
@@ -326,10 +326,10 @@ export class PPBuilderAPIClient {
    */
   async updateBlock(blockId, updates) {
     const payload = {};
-    if (updates.name) payload.pp_name = updates.name;
+    if (updates.name) payload.pp_title = updates.name;
     if (updates.sortOrder !== undefined) payload.pp_order = updates.sortOrder;
     if (updates.settings) payload.pp_data = JSON.stringify(updates.settings);
-    if (updates.isActive !== undefined) payload.pp_isactive = updates.isActive;
+    if (updates.isActive !== undefined) payload.pp_status = updates.isActive;
     if (updates.zone !== undefined) payload.pp_zone = updates.zone;
 
     return await this._fetch(`${this.baseURL}/pp_blocks(${blockId})`, {
@@ -449,8 +449,8 @@ export class PPBuilderAPIClient {
     // Create new published version
     const publishedVersion = await this.createPageVersion({
       pageId,
-      name: `v${draftVersion.pp_versionnumber} - Published`,
-      versionNumber: draftVersion.pp_versionnumber,
+      name: `v${draftVersion.pp_createdon} - Published`,
+      versionNumber: draftVersion.pp_createdon,
       status: 2, // Published
       settings: draftVersion.pp_settings ? JSON.parse(draftVersion.pp_settings) : {}
     });
@@ -468,7 +468,7 @@ export class PPBuilderAPIClient {
         sortOrder: draftBlock.pp_order,
         zone: draftBlock.pp_zone,
         settings: draftBlock.pp_data ? JSON.parse(draftBlock.pp_data) : {},
-        isActive: draftBlock.pp_isactive
+        isActive: draftBlock.pp_status
       });
 
       blockIdMap[draftBlock.pp_blockid] = newBlock.pp_blockid;
@@ -485,7 +485,7 @@ export class PPBuilderAPIClient {
         sortOrder: draftBlock.pp_order,
         zone: draftBlock.pp_zone,
         settings: draftBlock.pp_data ? JSON.parse(draftBlock.pp_data) : {},
-        isActive: draftBlock.pp_isactive
+        isActive: draftBlock.pp_status
       });
 
       blockIdMap[draftBlock.pp_blockid] = newBlock.pp_blockid;
