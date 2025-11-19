@@ -64,20 +64,7 @@ class PPBuilderApp {
       plugins: ['gjs-preset-webpage'],
 
       pluginsOpts: {
-        'gjs-preset-webpage': {
-          blocksBasicOpts: {
-            flexGrid: true
-          },
-          blocks: ['link-block', 'quote', 'text-basic'],
-          modalImportTitle: 'Import Template',
-          modalImportLabel: '<div style="margin-bottom: 10px; font-size: 13px;">Paste here your HTML/CSS and click Import</div>',
-          modalImportContent: function(editor) {
-            return editor.getHtml() + '<style>' + editor.getCss() + '</style>';
-          },
-          filestackOpts: null,
-          aviaryOpts: false,
-          customStyleManager: []
-        }
+        'gjs-preset-webpage': {}
       }
     });
 
