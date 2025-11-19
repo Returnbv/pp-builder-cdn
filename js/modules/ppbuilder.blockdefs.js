@@ -13,11 +13,11 @@
  * ============================================================================
  */
 
-import { layoutBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@81ae729/js/blocks/layout-blocks.js';
-import { contentBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@81ae729/js/blocks/content-blocks.js';
-import { mediaBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@81ae729/js/blocks/media-blocks.js';
-import { navBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@81ae729/js/blocks/nav-blocks.js';
-import { dvBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@81ae729/js/blocks/dv-blocks.js';
+import { layoutBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@fcd8bba/js/blocks/layout-blocks.js';
+import { contentBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@fcd8bba/js/blocks/content-blocks.js';
+import { mediaBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@fcd8bba/js/blocks/media-blocks.js';
+import { navBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@fcd8bba/js/blocks/nav-blocks.js';
+import { dvBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@fcd8bba/js/blocks/dv-blocks.js';
 
 class PPBuilderBlockDefinitions {
   constructor() {
