@@ -35,31 +35,10 @@ class PPBuilderApp {
 
   async initGrapesJS() {
     const editor = grapesjs.init({
-      container: '#gjs-editor',
-      fromElement: false,
-      height: '100%',
-      width: 'auto',
+      container: '#gjs',
+      height: '100vh',
+      fromElement: true,
       storageManager: false,
-
-      blockManager: {
-        appendTo: '#gjs-blocks'
-      },
-
-      layerManager: {
-        appendTo: '#gjs-layers'
-      },
-
-      traitManager: {
-        appendTo: '#gjs-traits'
-      },
-
-      styleManager: {
-        appendTo: '#gjs-styles'
-      },
-
-      panels: {
-        defaults: []
-      },
 
       plugins: ['gjs-preset-webpage'],
 
