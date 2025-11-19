@@ -1,10 +1,10 @@
 
 
-import { layoutBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@main/js/blocks/layout-blocks.js';
-import { contentBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@main/js/blocks/content-blocks.js';
-import { mediaBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@main/js/blocks/media-blocks.js';
-import { navBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@main/js/blocks/nav-blocks.js';
-import { dvBlocks } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@main/js/blocks/dv-blocks.js';
+import { layoutBlocks } from 'https://cdn.statically.io/gh/Returnbv/pp-builder-cdn/main/js/blocks/layout-blocks.js';
+import { contentBlocks } from 'https://cdn.statically.io/gh/Returnbv/pp-builder-cdn/main/js/blocks/content-blocks.js';
+import { mediaBlocks } from 'https://cdn.statically.io/gh/Returnbv/pp-builder-cdn/main/js/blocks/media-blocks.js';
+import { navBlocks } from 'https://cdn.statically.io/gh/Returnbv/pp-builder-cdn/main/js/blocks/nav-blocks.js';
+import { dvBlocks } from 'https://cdn.statically.io/gh/Returnbv/pp-builder-cdn/main/js/blocks/dv-blocks.js';
 
 class PPBuilderBlockDefinitions {
   constructor() {
