@@ -12,7 +12,7 @@
  * ============================================================================
  */
 
-import { apiClient } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@073bebf/js/core/ppbuilder.apiclient.js';
+import { apiClient } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@81ae729/js/core/ppbuilder.apiclient.js';
 
 class PPBuilderPageManager {
   constructor() {
