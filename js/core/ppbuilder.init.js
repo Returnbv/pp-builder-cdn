@@ -37,7 +37,7 @@ class PPBuilderApp {
     const editor = grapesjs.init({
       container: '#gjs',
       height: '100vh',
-      fromElement: true,
+      fromElement: false,
       storageManager: false,
 
       plugins: ['gjs-preset-webpage'],
@@ -46,6 +46,25 @@ class PPBuilderApp {
         'gjs-preset-webpage': {}
       }
     });
+
+    editor.setComponents(`
+      <div class="container">
+        <h1>Welcome to PP Builder</h1>
+        <p>Drag and drop blocks from the right panel to start building your page.</p>
+      </div>
+    `);
+
+    editor.setStyle(`
+      .container {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 2em;
+        margin-bottom: 0.5em;
+      }
+    `);
 
     this.addCustomCommands(editor);
 
