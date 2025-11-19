@@ -264,7 +264,7 @@ export class PPBuilderAPIClient {
       throw new Error(`Page not found: ${pageSlug}`);
     }
 
-    const version = await getActivePageVersion(page.pp_pageid);
+    const version = await this.getActivePageVersion(page.pp_pageid);
     if (!version) {
       throw new Error(`No active version found for page: ${pageSlug}`);
     }
