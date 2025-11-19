@@ -2,7 +2,6 @@
 
 import { apiClient } from 'https://cdn.statically.io/gh/Returnbv/pp-builder-cdn/main/js/core/ppbuilder.apiclient.js';
 import { serializer } from 'https://cdn.statically.io/gh/Returnbv/pp-builder-cdn/main/js/core/ppbuilder.serializer.js';
-import { blockDefinitions } from 'https://cdn.statically.io/gh/Returnbv/pp-builder-cdn/main/js/modules/ppbuilder.blockdefs.js';
 import { pageManager } from 'https://cdn.statically.io/gh/Returnbv/pp-builder-cdn/main/js/modules/ppbuilder.pagemanager.js';
 
 class PPBuilderApp {
@@ -37,19 +36,13 @@ class PPBuilderApp {
   async initGrapesJS() {
     const editor = grapesjs.init({
       container: '#gjs-editor',
-
+      fromElement: false,
       height: '100%',
       width: 'auto',
-
       storageManager: false,
 
-      panels: {
-        defaults: []
-      },
-
       blockManager: {
-        appendTo: '#gjs-blocks',
-        blocks: blockDefinitions.getAllBlocks()
+        appendTo: '#gjs-blocks'
       },
 
       layerManager: {
@@ -61,43 +54,31 @@ class PPBuilderApp {
       },
 
       styleManager: {
-        appendTo: '#gjs-styles',
-        sectors: this.getStyleSectors()
+        appendTo: '#gjs-styles'
       },
 
-      canvas: {
-        styles: [
-          '/admin/css/tailwind-preview.css'
-        ],
-        scripts: []
+      panels: {
+        defaults: []
       },
 
-      deviceManager: {
-        devices: [
-          {
-            name: 'Desktop',
-            width: ''
+      plugins: ['gjs-preset-webpage'],
+
+      pluginsOpts: {
+        'gjs-preset-webpage': {
+          blocksBasicOpts: {
+            flexGrid: true
           },
-          {
-            name: 'Tablet',
-            width: '768px',
-            widthMedia: '992px'
+          blocks: ['link-block', 'quote', 'text-basic'],
+          modalImportTitle: 'Import Template',
+          modalImportLabel: '<div style="margin-bottom: 10px; font-size: 13px;">Paste here your HTML/CSS and click Import</div>',
+          modalImportContent: function(editor) {
+            return editor.getHtml() + '<style>' + editor.getCss() + '</style>';
           },
-          {
-            name: 'Mobile',
-            width: '375px',
-            widthMedia: '480px'
-          }
-        ]
-      },
-
-      richTextEditor: {
-        actions: ['bold', 'italic', 'underline', 'strikethrough', 'link']
-      },
-
-      plugins: [],
-
-      pluginsOpts: {}
+          filestackOpts: null,
+          aviaryOpts: false,
+          customStyleManager: []
+        }
+      }
     });
 
     this.addCustomCommands(editor);
@@ -105,36 +86,6 @@ class PPBuilderApp {
     this.addCustomPanels(editor);
 
     return editor;
-  }
-
-  getStyleSectors() {
-    return [
-      {
-        name: 'General',
-        open: true,
-        buildProps: ['width', 'height', 'min-height', 'max-width', 'margin', 'padding']
-      },
-      {
-        name: 'Typography',
-        open: false,
-        buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'color', 'line-height', 'text-align', 'text-decoration', 'text-shadow']
-      },
-      {
-        name: 'Background',
-        open: false,
-        buildProps: ['background-color', 'background-image', 'background-repeat', 'background-position', 'background-size']
-      },
-      {
-        name: 'Border',
-        open: false,
-        buildProps: ['border', 'border-radius', 'border-width', 'border-style', 'border-color']
-      },
-      {
-        name: 'Extra',
-        open: false,
-        buildProps: ['opacity', 'transition', 'transform', 'cursor', 'overflow']
-      }
-    ];
   }
 
   addCustomCommands(editor) {
