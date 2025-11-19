@@ -9,15 +9,51 @@ export class PPBuilderAPIClient {
       'OData-MaxVersion': '4.0',
       'OData-Version': '4.0'
     };
+    this.antiForgeryToken = null;
+  }
+
+  async _getAntiForgeryToken() {
+    if (this.antiForgeryToken) {
+      return this.antiForgeryToken;
+    }
+
+    const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+    if (tokenElement) {
+      this.antiForgeryToken = tokenElement.value;
+      return this.antiForgeryToken;
+    }
+
+    try {
+      const response = await fetch('/', { credentials: 'include' });
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const token = doc.querySelector('input[name="__RequestVerificationToken"]');
+
+      if (token) {
+        this.antiForgeryToken = token.value;
+        return this.antiForgeryToken;
+      }
+    } catch (error) {
+      console.warn('Failed to fetch anti-forgery token:', error);
+    }
+
+    return null;
   }
 
   async _fetch(url, options = {}) {
+    const headers = { ...this.headers, ...options.headers };
+
+    if (options.method && ['POST', 'PATCH', 'PUT', 'DELETE'].includes(options.method.toUpperCase())) {
+      const token = await this._getAntiForgeryToken();
+      if (token) {
+        headers['__RequestVerificationToken'] = token;
+      }
+    }
+
     const config = {
       ...options,
-      headers: {
-        ...this.headers,
-        ...options.headers
-      },
+      headers,
       credentials: 'include'
     };
 
