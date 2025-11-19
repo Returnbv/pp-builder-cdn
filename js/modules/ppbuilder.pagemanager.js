@@ -1,17 +1,3 @@
-/**
- * ============================================================================
- * PP BUILDER - PAGE MANAGER
- * ============================================================================
- *
- * Manages page list, creation, deletion, and selection.
- *
- * Author: PP Builder System
- * Version: 1.0
- * Date: 2025-01-19
- *
- * ============================================================================
- */
-
 import { apiClient } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@main/js/core/ppbuilder.apiclient.js';
 
 class PPBuilderPageManager {
@@ -21,9 +7,6 @@ class PPBuilderPageManager {
     this.pages = [];
   }
 
-  /**
-   * Initialize page manager
-   */
   async init(editor, app) {
     this.editor = editor;
     this.app = app;
@@ -31,11 +14,7 @@ class PPBuilderPageManager {
     this.setupEventListeners();
   }
 
-  /**
-   * Setup event listeners
-   */
   setupEventListeners() {
-    // Page selector dropdown
     const pageSelector = document.getElementById('pp-page-selector');
     if (pageSelector) {
       pageSelector.addEventListener('change', (e) => {
@@ -46,7 +25,6 @@ class PPBuilderPageManager {
       });
     }
 
-    // Create page button
     const createPageBtn = document.getElementById('pp-create-page');
     if (createPageBtn) {
       createPageBtn.addEventListener('click', () => {
@@ -55,9 +33,6 @@ class PPBuilderPageManager {
     }
   }
 
-  /**
-   * Load pages list
-   */
   async loadPagesList() {
     try {
       this.pages = await apiClient.getPages({
@@ -74,9 +49,6 @@ class PPBuilderPageManager {
     }
   }
 
-  /**
-   * Render pages list in sidebar
-   */
   renderPagesList() {
     const listElement = document.getElementById('pp-pages-list');
     if (!listElement) return;
@@ -107,13 +79,11 @@ class PPBuilderPageManager {
         </div>
       `;
 
-      // Edit button
       li.querySelector('[data-action="edit"]').addEventListener('click', (e) => {
         e.stopPropagation();
         this.app.loadPage(page.pp_slug);
       });
 
-      // Delete button
       li.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
         e.stopPropagation();
         this.deletePage(page.pp_pageid, page.pp_title);
@@ -123,14 +93,10 @@ class PPBuilderPageManager {
     });
   }
 
-  /**
-   * Render pages dropdown
-   */
   renderPagesDropdown() {
     const dropdown = document.getElementById('pp-page-selector');
     if (!dropdown) return;
 
-    // Clear existing options (except placeholder)
     dropdown.innerHTML = '<option value="">Select a page...</option>';
 
     this.pages.forEach(page => {
@@ -141,9 +107,6 @@ class PPBuilderPageManager {
     });
   }
 
-  /**
-   * Show create page dialog
-   */
   showCreatePageDialog() {
     const dialog = this.createDialog({
       title: 'Create New Page',
@@ -180,7 +143,6 @@ class PPBuilderPageManager {
       ]
     });
 
-    // Auto-generate slug from name
     const nameInput = document.getElementById('new-page-name');
     const slugInput = document.getElementById('new-page-slug');
 
@@ -194,16 +156,12 @@ class PPBuilderPageManager {
     dialog.show();
   }
 
-  /**
-   * Create new page
-   */
   async createPage(dialog) {
     const name = document.getElementById('new-page-name')?.value.trim();
     const slug = document.getElementById('new-page-slug')?.value.trim();
     const title = document.getElementById('new-page-title')?.value.trim();
     const description = document.getElementById('new-page-description')?.value.trim();
 
-    // Validation
     if (!name) {
       this.app.showError('Page name is required');
       return;
@@ -223,7 +181,6 @@ class PPBuilderPageManager {
       dialog.close();
       this.app.showLoading('Creating page...');
 
-      // Create page
       const page = await apiClient.createPage({
         name,
         slug,
@@ -232,25 +189,22 @@ class PPBuilderPageManager {
         isActive: true
       });
 
-      // Create initial draft version
       const version = await apiClient.createPageVersion({
         pageId: page.pp_pageid,
         name: 'v1.0 - Draft',
         versionNumber: 1,
-        status: 1, // Draft
+        status: 1,
         settings: {
           wrapperClass: 'tw-min-h-screen',
           containerClass: ''
         }
       });
 
-      // Reload pages list
       await this.loadPagesList();
 
       this.app.hideLoading();
       this.app.showSuccess(`Page "${name}" created successfully!`);
 
-      // Load new page in editor
       this.app.loadPage(slug);
 
       console.log('✅ Page created:', page.pp_pageid);
@@ -261,9 +215,6 @@ class PPBuilderPageManager {
     }
   }
 
-  /**
-   * Delete page
-   */
   async deletePage(pageId, pageName) {
     if (!confirm(`Are you sure you want to delete "${pageName}"?\n\nThis will delete all versions and blocks. This action cannot be undone.`)) {
       return;
@@ -272,22 +223,17 @@ class PPBuilderPageManager {
     try {
       this.app.showLoading('Deleting page...');
 
-      // Get all versions
       const versions = await apiClient.getPageVersions(pageId);
 
-      // Delete all blocks for each version
       for (const version of versions) {
         await apiClient.deleteAllBlocks(version.pp_versionid);
         await apiClient.deletePageVersion(version.pp_versionid);
       }
 
-      // Delete page
       await apiClient.deletePage(pageId);
 
-      // Reload pages list
       await this.loadPagesList();
 
-      // Clear editor if this was the active page
       if (this.app.currentPage?.pp_pageid === pageId) {
         this.editor.DomComponents.clear();
         this.app.currentPage = null;
@@ -305,9 +251,6 @@ class PPBuilderPageManager {
     }
   }
 
-  /**
-   * Generate slug from text
-   */
   generateSlug(text) {
     return text
       .toLowerCase()
@@ -317,18 +260,12 @@ class PPBuilderPageManager {
       .replace(/^-|-$/g, '');
   }
 
-  /**
-   * Escape HTML
-   */
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
-  /**
-   * Create dialog
-   */
   createDialog({ title, content, buttons = [] }) {
     const overlay = document.createElement('div');
     overlay.className = 'pp-dialog-overlay';
@@ -355,12 +292,10 @@ class PPBuilderPageManager {
 
     overlay.appendChild(dialog);
 
-    // Close button
     dialog.querySelector('.pp-dialog-close').addEventListener('click', () => {
       overlay.remove();
     });
 
-    // Action buttons
     buttons.forEach((btn, i) => {
       dialog.querySelector(`[data-button="${i}"]`).addEventListener('click', () => {
         btn.onClick({ close: () => overlay.remove() });
@@ -374,5 +309,4 @@ class PPBuilderPageManager {
   }
 }
 
-// Export singleton instance
 export const pageManager = new PPBuilderPageManager();

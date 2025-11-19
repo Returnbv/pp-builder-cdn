@@ -1,17 +1,4 @@
-/**
- * ============================================================================
- * PP BUILDER - DATAVERSE WEB API CLIENT
- * ============================================================================
- *
- * Complete client for interacting with Dataverse Web API from Power Pages.
- * Handles all CRUD operations for pp_page, pp_version, and pp_block.
- *
- * Author: PP Builder System
- * Version: 1.0
- * Date: 2025-01-19
- *
- * ============================================================================
- */
+
 
 export class PPBuilderAPIClient {
   constructor() {
@@ -24,13 +11,6 @@ export class PPBuilderAPIClient {
     };
   }
 
-  // ==========================================================================
-  // HELPER METHODS
-  // ==========================================================================
-
-  /**
-   * Generic fetch wrapper with error handling
-   */
   async _fetch(url, options = {}) {
     const config = {
       ...options,
@@ -38,15 +18,13 @@ export class PPBuilderAPIClient {
         ...this.headers,
         ...options.headers
       },
-      credentials: 'include' // Include Power Pages session cookies
+      credentials: 'include'
     };
 
     try {
       const response = await fetch(url, config);
 
-      // Handle different response statuses
       if (response.status === 204) {
-        // No content (successful DELETE/PATCH)
         return { success: true };
       }
 
@@ -62,9 +40,6 @@ export class PPBuilderAPIClient {
     }
   }
 
-  /**
-   * Build OData query string
-   */
   _buildQuery(options = {}) {
     const params = [];
 
@@ -78,13 +53,6 @@ export class PPBuilderAPIClient {
     return params.length > 0 ? `?${params.join('&')}` : '';
   }
 
-  // ==========================================================================
-  // PP_PAGE OPERATIONS
-  // ==========================================================================
-
-  /**
-   * Get all pages
-   */
   async getPages(options = {}) {
     const query = this._buildQuery({
       filter: options.filter || 'statecode eq 0',
@@ -96,17 +64,11 @@ export class PPBuilderAPIClient {
     return result.value || [];
   }
 
-  /**
-   * Get single page by ID
-   */
   async getPage(pageId) {
     const result = await this._fetch(`${this.baseURL}/pp_pages(${pageId})`);
     return result;
   }
 
-  /**
-   * Get page by slug
-   */
   async getPageBySlug(slug) {
     const pages = await this.getPages({
       filter: `pp_slug eq '${slug}' and statecode eq 0`,
@@ -115,15 +77,12 @@ export class PPBuilderAPIClient {
     return pages.length > 0 ? pages[0] : null;
   }
 
-  /**
-   * Create new page
-   */
   async createPage(pageData) {
     const payload = {
       pp_title: pageData.title || pageData.name,
       pp_slug: pageData.slug,
       pp_metadescription: pageData.metaDescription || '',
-      pp_status: 125600000 // Default to Draft
+      pp_status: 125600000
     };
 
     return await this._fetch(`${this.baseURL}/pp_pages`, {
@@ -132,16 +91,13 @@ export class PPBuilderAPIClient {
     });
   }
 
-  /**
-   * Update page
-   */
   async updatePage(pageId, updates) {
     const payload = {};
     if (updates.name) payload.pp_title = updates.name;
     if (updates.slug) payload.pp_slug = updates.slug;
     if (updates.title) payload.pp_title = updates.title;
     if (updates.metaDescription !== undefined) payload.pp_metadescription = updates.metaDescription;
-    if (updates.status !== undefined) payload.pp_status = updates.status; // 125600000=Draft, 125600001=Published, 125600002=Archived
+    if (updates.status !== undefined) payload.pp_status = updates.status;
 
     return await this._fetch(`${this.baseURL}/pp_pages(${pageId})`, {
       method: 'PATCH',
@@ -149,22 +105,12 @@ export class PPBuilderAPIClient {
     });
   }
 
-  /**
-   * Delete page
-   */
   async deletePage(pageId) {
     return await this._fetch(`${this.baseURL}/pp_pages(${pageId})`, {
       method: 'DELETE'
     });
   }
 
-  // ==========================================================================
-  // pp_version OPERATIONS
-  // ==========================================================================
-
-  /**
-   * Get all versions for a page
-   */
   async getPageVersions(pageId, options = {}) {
     const query = this._buildQuery({
       filter: `_pp_page_value eq ${pageId} and statecode eq 0`,
@@ -176,9 +122,6 @@ export class PPBuilderAPIClient {
     return result.value || [];
   }
 
-  /**
-   * Get active version for page (Published > Draft)
-   */
   async getActivePageVersion(pageId) {
     const versions = await this.getPageVersions(pageId, {
       orderby: 'pp_state desc, pp_createdon desc',
@@ -188,9 +131,6 @@ export class PPBuilderAPIClient {
     return versions.length > 0 ? versions[0] : null;
   }
 
-  /**
-   * Get draft version for page
-   */
   async getDraftPageVersion(pageId) {
     const versions = await this.getPageVersions(pageId, {
       filter: `_pp_page_value eq ${pageId} and pp_state eq 125600000 and statecode eq 0`,
@@ -201,9 +141,6 @@ export class PPBuilderAPIClient {
     return versions.length > 0 ? versions[0] : null;
   }
 
-  /**
-   * Get published version for page
-   */
   async getPublishedPageVersion(pageId) {
     const versions = await this.getPageVersions(pageId, {
       filter: `_pp_page_value eq ${pageId} and pp_state eq 125600001 and statecode eq 0`,
@@ -214,14 +151,11 @@ export class PPBuilderAPIClient {
     return versions.length > 0 ? versions[0] : null;
   }
 
-  /**
-   * Create new page version
-   */
   async createPageVersion(versionData) {
     const payload = {
       'pp_Page@odata.bind': `/pp_pages(${versionData.pageId})`,
       pp_label: versionData.name,
-      pp_state: versionData.state || 125600000 // 125600000=Draft, 125600001=Published
+      pp_state: versionData.state || 125600000
     };
 
     if (versionData.settings) {
@@ -234,14 +168,11 @@ export class PPBuilderAPIClient {
     });
   }
 
-  /**
-   * Update page version
-   */
   async updatePageVersion(versionId, updates) {
     const payload = {};
     if (updates.name) payload.pp_label = updates.name;
     if (updates.state !== undefined) {
-      payload.pp_state = updates.state; // 125600000=Draft, 125600001=Published
+      payload.pp_state = updates.state;
     }
     if (updates.settings) payload.pp_settings = JSON.stringify(updates.settings);
 
@@ -251,22 +182,12 @@ export class PPBuilderAPIClient {
     });
   }
 
-  /**
-   * Delete page version
-   */
   async deletePageVersion(versionId) {
     return await this._fetch(`${this.baseURL}/pp_versions(${versionId})`, {
       method: 'DELETE'
     });
   }
 
-  // ==========================================================================
-  // PP_BLOCK OPERATIONS
-  // ==========================================================================
-
-  /**
-   * Get all blocks for a version
-   */
   async getBlocks(versionId, options = {}) {
     const query = this._buildQuery({
       filter: `_pp_versionid_value eq ${versionId} and statecode eq 0`,
@@ -278,16 +199,10 @@ export class PPBuilderAPIClient {
     return result.value || [];
   }
 
-  /**
-   * Get single block by ID
-   */
   async getBlock(blockId) {
     return await this._fetch(`${this.baseURL}/pp_blocks(${blockId})`);
   }
 
-  /**
-   * Create new block
-   */
   async createBlock(blockData) {
     const payload = {
       'pp_versionid@odata.bind': `/pp_versions(${blockData.pageversionId})`,
@@ -312,9 +227,6 @@ export class PPBuilderAPIClient {
     });
   }
 
-  /**
-   * Update block
-   */
   async updateBlock(blockId, updates) {
     const payload = {};
     if (updates.name) payload.pp_title = updates.name;
@@ -328,22 +240,15 @@ export class PPBuilderAPIClient {
     });
   }
 
-  /**
-   * Delete block
-   */
   async deleteBlock(blockId) {
     return await this._fetch(`${this.baseURL}/pp_blocks(${blockId})`, {
       method: 'DELETE'
     });
   }
 
-  /**
-   * Delete all blocks for a version
-   */
   async deleteAllBlocks(versionId) {
     const blocks = await this.getBlocks(versionId);
 
-    // Delete in reverse order to handle parent-child relationships
     const sortedBlocks = blocks.sort((a, b) => b.pp_order - a.pp_order);
 
     for (const block of sortedBlocks) {
@@ -353,30 +258,19 @@ export class PPBuilderAPIClient {
     return { success: true, deletedCount: blocks.length };
   }
 
-  // ==========================================================================
-  // COMPOSITE OPERATIONS
-  // ==========================================================================
-
-  /**
-   * Load complete page data for editing
-   */
   async loadPageForEditing(pageSlug) {
-    // Get page
     const page = await this.getPageBySlug(pageSlug);
     if (!page) {
       throw new Error(`Page not found: ${pageSlug}`);
     }
 
-    // Get active version (Draft > Published)
     const version = await getActivePageVersion(page.pp_pageid);
     if (!version) {
       throw new Error(`No active version found for page: ${pageSlug}`);
     }
 
-    // Get all blocks
     const blocks = await this.getBlocks(version.pp_versionid);
 
-    // Parse settings JSON
     const parsedVersion = {
       ...version,
       settings: version.pp_settings ? JSON.parse(version.pp_settings) : {}
@@ -394,14 +288,9 @@ export class PPBuilderAPIClient {
     };
   }
 
-  /**
-   * Save draft (delete old blocks + create new)
-   */
   async saveDraft(versionId, blocks) {
-    // Delete all existing blocks
     await this.deleteAllBlocks(versionId);
 
-    // Create new blocks
     const createdBlocks = [];
     for (const block of blocks) {
       const created = await this.createBlock({
@@ -418,17 +307,12 @@ export class PPBuilderAPIClient {
     };
   }
 
-  /**
-   * Publish page (clone draft → published)
-   */
   async publishPage(pageId, draftVersionId) {
-    // Get draft version
     const draftVersion = await this._fetch(`${this.baseURL}/pp_versions(${draftVersionId})`);
     const draftBlocks = await this.getBlocks(draftVersionId);
 
-    // Simply update the draft version to published (no archiving since you only have Draft/Published states)
     await this.updatePageVersion(draftVersionId, {
-      state: 125600001 // Published
+      state: 125600001
     });
 
     return {
@@ -438,26 +322,19 @@ export class PPBuilderAPIClient {
     };
   }
 
-  /**
-   * Clone version (create new draft from published)
-   */
   async cloneVersion(sourceVersionId, pageId) {
-    // Get source version
     const sourceVersion = await this._fetch(`${this.baseURL}/pp_versions(${sourceVersionId})`);
     const sourceBlocks = await this.getBlocks(sourceVersionId);
 
-    // Create new draft version
     const newVersion = await this.createPageVersion({
       pageId,
       name: `${sourceVersion.pp_label} - Copy`,
-      state: 125600000, // Draft
+      state: 125600000,
       settings: sourceVersion.pp_settings ? JSON.parse(sourceVersion.pp_settings) : {}
     });
 
-    // Clone all blocks from source to new version
-    const blockIdMap = {}; // Map old IDs to new IDs for parent relationships
+    const blockIdMap = {};
 
-    // First pass: create blocks without parent references
     for (const sourceBlock of sourceBlocks.filter(b => !b.pp_parentblockid)) {
       const newBlock = await this.createBlock({
         pageversionId: newVersion.pp_VersionId,
@@ -472,7 +349,6 @@ export class PPBuilderAPIClient {
       blockIdMap[sourceBlock.pp_BlockId] = newBlock.pp_BlockId;
     }
 
-    // Second pass: create child blocks with parent references
     for (const sourceBlock of sourceBlocks.filter(b => b.pp_parentblockid)) {
       const newBlock = await this.createBlock({
         pageversionId: newVersion.pp_VersionId,
@@ -496,5 +372,4 @@ export class PPBuilderAPIClient {
   }
 }
 
-// Export singleton instance
 export const apiClient = new PPBuilderAPIClient();
