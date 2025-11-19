@@ -13,10 +13,10 @@
  * ============================================================================
  */
 
-import { apiClient } from './ppbuilder.apiclient.js';
-import { serializer } from './ppbuilder.serializer.js';
-import { blockDefinitions } from '../modules/ppbuilder.blockdefs.js';
-import { pageManager } from '../modules/ppbuilder.pagemanager.js';
+import { apiClient } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@main/js/core/ppbuilder.apiclient.js';
+import { serializer } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@main/js/core/ppbuilder.serializer.js';
+import { blockDefinitions } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@main/js/modules/ppbuilder.blockdefs.js';
+import { pageManager } from 'https://cdn.jsdelivr.net/gh/Returnbv/pp-builder-cdn@main/js/modules/ppbuilder.pagemanager.js';
 
 class PPBuilderApp {
   constructor() {
