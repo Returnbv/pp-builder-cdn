@@ -44,7 +44,7 @@ export class PPBuilderSerializer {
   _parseDataverseBlock(block) {
     return {
       id: block.pp_blockid,
-      name: block.pp_name,
+      name: block.pp_title,
       templateName: block.pp_type,
       blockType: block.pp_blocktype,
       sortOrder: block.pp_order,

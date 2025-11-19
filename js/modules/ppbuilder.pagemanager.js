@@ -61,7 +61,7 @@ class PPBuilderPageManager {
   async loadPagesList() {
     try {
       this.pages = await apiClient.getPages({
-        orderby: 'pp_name'
+        orderby: 'pp_title'
       });
 
       this.renderPagesList();
@@ -94,7 +94,7 @@ class PPBuilderPageManager {
 
       li.innerHTML = `
         <div class="pp-page-item-content">
-          <span class="pp-page-name">${this.escapeHtml(page.pp_name)}</span>
+          <span class="pp-page-name">${this.escapeHtml(page.pp_title)}</span>
           <span class="pp-page-slug">${this.escapeHtml(page.pp_slug)}</span>
         </div>
         <div class="pp-page-actions">
@@ -116,7 +116,7 @@ class PPBuilderPageManager {
       // Delete button
       li.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
         e.stopPropagation();
-        this.deletePage(page.pp_pageid, page.pp_name);
+        this.deletePage(page.pp_pageid, page.pp_title);
       });
 
       listElement.appendChild(li);
@@ -136,7 +136,7 @@ class PPBuilderPageManager {
     this.pages.forEach(page => {
       const option = document.createElement('option');
       option.value = page.pp_slug;
-      option.textContent = page.pp_name;
+      option.textContent = page.pp_title;
       dropdown.appendChild(option);
     });
   }

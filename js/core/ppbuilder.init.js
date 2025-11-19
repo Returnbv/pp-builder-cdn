@@ -323,7 +323,7 @@ class PPBuilderApp {
       this.isDirty = false;
 
       this.hideLoading();
-      this.showSuccess(`Loaded: ${this.currentPage.pp_name}`);
+      this.showSuccess(`Loaded: ${this.currentPage.pp_title}`);
 
       console.log('✅ Page loaded:', pageSlug);
     } catch (error) {
