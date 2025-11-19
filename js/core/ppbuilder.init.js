@@ -48,6 +48,13 @@ class PPBuilderApp {
         scripts: []
       },
 
+      components: `
+        <div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+          <h1 style="font-size: 2em; margin-bottom: 0.5em;">Welcome to PP Builder</h1>
+          <p>Drag and drop blocks from the Blocks panel to start building your page.</p>
+        </div>
+      `,
+
       plugins: ['gjs-preset-webpage'],
 
       pluginsOpts: {
@@ -59,21 +66,6 @@ class PPBuilderApp {
           }
         }
       }
-    });
-
-    const loadDefaultContent = () => {
-      if (!this.currentPage) {
-        editor.setComponents(`
-          <div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
-            <h1 style="font-size: 2em; margin-bottom: 0.5em;">Welcome to PP Builder</h1>
-            <p>Drag and drop blocks from the Blocks panel to start building your page.</p>
-          </div>
-        `);
-      }
-    };
-
-    editor.on('load', () => {
-      loadDefaultContent();
     });
 
     this.addCustomCommands(editor);
