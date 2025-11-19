@@ -109,7 +109,7 @@ export class PPBuilderAPIClient {
    */
   async getPageBySlug(slug) {
     const pages = await this.getPages({
-      filter: `pp_slug eq '${slug}' and pp_status eq true and statecode eq 0`,
+      filter: `pp_slug eq '${slug}' and statecode eq 0`,
       top: 1
     });
     return pages.length > 0 ? pages[0] : null;
@@ -120,11 +120,10 @@ export class PPBuilderAPIClient {
    */
   async createPage(pageData) {
     const payload = {
-      pp_title: pageData.name,
-      pp_slug: pageData.slug,
       pp_title: pageData.title || pageData.name,
+      pp_slug: pageData.slug,
       pp_metadescription: pageData.metaDescription || '',
-      pp_status: pageData.isActive !== undefined ? pageData.isActive : true
+      pp_status: 125600000 // Default to Draft
     };
 
     return await this._fetch(`${this.baseURL}/pp_pages`, {
@@ -142,7 +141,7 @@ export class PPBuilderAPIClient {
     if (updates.slug) payload.pp_slug = updates.slug;
     if (updates.title) payload.pp_title = updates.title;
     if (updates.metaDescription !== undefined) payload.pp_metadescription = updates.metaDescription;
-    if (updates.isActive !== undefined) payload.pp_status = updates.isActive;
+    if (updates.status !== undefined) payload.pp_status = updates.status; // 125600000=Draft, 125600001=Published, 125600002=Archived
 
     return await this._fetch(`${this.baseURL}/pp_pages(${pageId})`, {
       method: 'PATCH',
@@ -168,7 +167,7 @@ export class PPBuilderAPIClient {
    */
   async getPageVersions(pageId, options = {}) {
     const query = this._buildQuery({
-      filter: `_pp_pageid_value eq ${pageId} and statecode eq 0`,
+      filter: `_pp_page_value eq ${pageId} and statecode eq 0`,
       orderby: options.orderby || 'pp_createdon desc',
       ...options
     });
@@ -182,7 +181,7 @@ export class PPBuilderAPIClient {
    */
   async getActivePageVersion(pageId) {
     const versions = await this.getPageVersions(pageId, {
-      orderby: 'pp_status desc, pp_createdon desc',
+      orderby: 'pp_state desc, pp_createdon desc',
       top: 1
     });
 
@@ -194,7 +193,7 @@ export class PPBuilderAPIClient {
    */
   async getDraftPageVersion(pageId) {
     const versions = await this.getPageVersions(pageId, {
-      filter: `_pp_pageid_value eq ${pageId} and pp_status eq 1 and statecode eq 0`,
+      filter: `_pp_page_value eq ${pageId} and pp_state eq 125600000 and statecode eq 0`,
       orderby: 'pp_createdon desc',
       top: 1
     });
@@ -207,7 +206,7 @@ export class PPBuilderAPIClient {
    */
   async getPublishedPageVersion(pageId) {
     const versions = await this.getPageVersions(pageId, {
-      filter: `_pp_pageid_value eq ${pageId} and pp_status eq 2 and statecode eq 0`,
+      filter: `_pp_page_value eq ${pageId} and pp_state eq 125600001 and statecode eq 0`,
       orderby: 'pp_createdon desc',
       top: 1
     });
@@ -220,16 +219,13 @@ export class PPBuilderAPIClient {
    */
   async createPageVersion(versionData) {
     const payload = {
-      'pp_pageid@odata.bind': `/pp_pages(${versionData.pageId})`,
-      pp_title: versionData.name,
-      pp_createdon: versionData.versionNumber,
-      pp_status: versionData.status || 1, // 1=Draft, 2=Published, 3=Archived
-      pp_ispublished: versionData.status === 2,
-      pp_settings: versionData.settings ? JSON.stringify(versionData.settings) : null
+      'pp_Page@odata.bind': `/pp_pages(${versionData.pageId})`,
+      pp_label: versionData.name,
+      pp_state: versionData.state || 125600000 // 125600000=Draft, 125600001=Published
     };
 
-    if (versionData.status === 2) {
-      payload.pp_createdon = new Date().toISOString();
+    if (versionData.settings) {
+      payload.pp_settings = JSON.stringify(versionData.settings);
     }
 
     return await this._fetch(`${this.baseURL}/pp_versions`, {
@@ -243,13 +239,9 @@ export class PPBuilderAPIClient {
    */
   async updatePageVersion(versionId, updates) {
     const payload = {};
-    if (updates.name) payload.pp_title = updates.name;
-    if (updates.status !== undefined) {
-      payload.pp_status = updates.status;
-      payload.pp_ispublished = updates.status === 2;
-      if (updates.status === 2) {
-        payload.pp_createdon = new Date().toISOString();
-      }
+    if (updates.name) payload.pp_label = updates.name;
+    if (updates.state !== undefined) {
+      payload.pp_state = updates.state; // 125600000=Draft, 125600001=Published
     }
     if (updates.settings) payload.pp_settings = JSON.stringify(updates.settings);
 
@@ -277,7 +269,7 @@ export class PPBuilderAPIClient {
    */
   async getBlocks(versionId, options = {}) {
     const query = this._buildQuery({
-      filter: `_pp_versionid_value eq ${versionId} and pp_status eq true and statecode eq 0`,
+      filter: `_pp_versionid_value eq ${versionId} and statecode eq 0`,
       orderby: options.orderby || 'pp_order',
       ...options
     });
@@ -303,8 +295,7 @@ export class PPBuilderAPIClient {
       pp_type: blockData.templateName,
       pp_blocktype: blockData.blockType,
       pp_order: blockData.sortOrder || 0,
-      pp_data: blockData.settings ? JSON.stringify(blockData.settings) : '{}',
-      pp_status: blockData.isActive !== undefined ? blockData.isActive : true
+      pp_data: blockData.settings ? JSON.stringify(blockData.settings) : '{}'
     };
 
     if (blockData.parentBlockId) {
@@ -329,7 +320,6 @@ export class PPBuilderAPIClient {
     if (updates.name) payload.pp_title = updates.name;
     if (updates.sortOrder !== undefined) payload.pp_order = updates.sortOrder;
     if (updates.settings) payload.pp_data = JSON.stringify(updates.settings);
-    if (updates.isActive !== undefined) payload.pp_status = updates.isActive;
     if (updates.zone !== undefined) payload.pp_zone = updates.zone;
 
     return await this._fetch(`${this.baseURL}/pp_blocks(${blockId})`, {
@@ -436,65 +426,72 @@ export class PPBuilderAPIClient {
     const draftVersion = await this._fetch(`${this.baseURL}/pp_versions(${draftVersionId})`);
     const draftBlocks = await this.getBlocks(draftVersionId);
 
-    // Get current published version (if exists)
-    const existingPublished = await this.getPublishedPageVersion(pageId);
-
-    // Archive existing published version
-    if (existingPublished) {
-      await this.updatePageVersion(existingPublished.pp_versionid, {
-        status: 3 // Archived
-      });
-    }
-
-    // Create new published version
-    const publishedVersion = await this.createPageVersion({
-      pageId,
-      name: `v${draftVersion.pp_createdon} - Published`,
-      versionNumber: draftVersion.pp_createdon,
-      status: 2, // Published
-      settings: draftVersion.pp_settings ? JSON.parse(draftVersion.pp_settings) : {}
+    // Simply update the draft version to published (no archiving since you only have Draft/Published states)
+    await this.updatePageVersion(draftVersionId, {
+      state: 125600001 // Published
     });
 
-    // Clone all blocks from draft to published
+    return {
+      success: true,
+      versionId: draftVersionId,
+      blocksCount: draftBlocks.length
+    };
+  }
+
+  /**
+   * Clone version (create new draft from published)
+   */
+  async cloneVersion(sourceVersionId, pageId) {
+    // Get source version
+    const sourceVersion = await this._fetch(`${this.baseURL}/pp_versions(${sourceVersionId})`);
+    const sourceBlocks = await this.getBlocks(sourceVersionId);
+
+    // Create new draft version
+    const newVersion = await this.createPageVersion({
+      pageId,
+      name: `${sourceVersion.pp_label} - Copy`,
+      state: 125600000, // Draft
+      settings: sourceVersion.pp_settings ? JSON.parse(sourceVersion.pp_settings) : {}
+    });
+
+    // Clone all blocks from source to new version
     const blockIdMap = {}; // Map old IDs to new IDs for parent relationships
 
     // First pass: create blocks without parent references
-    for (const draftBlock of draftBlocks.filter(b => !b.pp_parentblockid)) {
+    for (const sourceBlock of sourceBlocks.filter(b => !b.pp_parentblockid)) {
       const newBlock = await this.createBlock({
-        pageversionId: publishedVersion.pp_versionid,
-        name: draftBlock.pp_name,
-        templateName: draftBlock.pp_type,
-        blockType: draftBlock.pp_blocktype,
-        sortOrder: draftBlock.pp_order,
-        zone: draftBlock.pp_zone,
-        settings: draftBlock.pp_data ? JSON.parse(draftBlock.pp_data) : {},
-        isActive: draftBlock.pp_status
+        pageversionId: newVersion.pp_VersionId,
+        name: sourceBlock.pp_title,
+        templateName: sourceBlock.pp_type,
+        blockType: sourceBlock.pp_blocktype,
+        sortOrder: sourceBlock.pp_order,
+        zone: sourceBlock.pp_region,
+        settings: sourceBlock.pp_data ? JSON.parse(sourceBlock.pp_data) : {}
       });
 
-      blockIdMap[draftBlock.pp_blockid] = newBlock.pp_blockid;
+      blockIdMap[sourceBlock.pp_BlockId] = newBlock.pp_BlockId;
     }
 
     // Second pass: create child blocks with parent references
-    for (const draftBlock of draftBlocks.filter(b => b.pp_parentblockid)) {
+    for (const sourceBlock of sourceBlocks.filter(b => b.pp_parentblockid)) {
       const newBlock = await this.createBlock({
-        pageversionId: publishedVersion.pp_versionid,
-        parentBlockId: blockIdMap[draftBlock.pp_parentblockid],
-        name: draftBlock.pp_name,
-        templateName: draftBlock.pp_type,
-        blockType: draftBlock.pp_blocktype,
-        sortOrder: draftBlock.pp_order,
-        zone: draftBlock.pp_zone,
-        settings: draftBlock.pp_data ? JSON.parse(draftBlock.pp_data) : {},
-        isActive: draftBlock.pp_status
+        pageversionId: newVersion.pp_VersionId,
+        parentBlockId: blockIdMap[sourceBlock.pp_parentblockid],
+        name: sourceBlock.pp_title,
+        templateName: sourceBlock.pp_type,
+        blockType: sourceBlock.pp_blocktype,
+        sortOrder: sourceBlock.pp_order,
+        zone: sourceBlock.pp_region,
+        settings: sourceBlock.pp_data ? JSON.parse(sourceBlock.pp_data) : {}
       });
 
-      blockIdMap[draftBlock.pp_blockid] = newBlock.pp_blockid;
+      blockIdMap[sourceBlock.pp_BlockId] = newBlock.pp_BlockId;
     }
 
     return {
       success: true,
-      publishedVersionId: publishedVersion.pp_versionid,
-      blocksPublished: draftBlocks.length
+      newVersionId: newVersion.pp_VersionId,
+      blocksCloned: sourceBlocks.length
     };
   }
 }
