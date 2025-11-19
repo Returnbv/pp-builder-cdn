@@ -37,34 +37,44 @@ class PPBuilderApp {
     const editor = grapesjs.init({
       container: '#gjs',
       height: '100vh',
+      width: 'auto',
       fromElement: false,
       storageManager: false,
+
+      noticeOnUnload: false,
+
+      canvas: {
+        styles: [],
+        scripts: []
+      },
 
       plugins: ['gjs-preset-webpage'],
 
       pluginsOpts: {
-        'gjs-preset-webpage': {}
+        'gjs-preset-webpage': {
+          modalImportTitle: 'Import',
+          modalImportLabel: '<div style="margin-bottom: 10px; font-size: 13px;">Paste here your HTML/CSS and click Import</div>',
+          modalImportContent: function(editor) {
+            return editor.getHtml() + '<style>' + editor.getCss() + '</style>'
+          }
+        }
       }
     });
 
-    editor.setComponents(`
-      <div class="container">
-        <h1>Welcome to PP Builder</h1>
-        <p>Drag and drop blocks from the right panel to start building your page.</p>
-      </div>
-    `);
+    const loadDefaultContent = () => {
+      if (!this.currentPage) {
+        editor.setComponents(`
+          <div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+            <h1 style="font-size: 2em; margin-bottom: 0.5em;">Welcome to PP Builder</h1>
+            <p>Drag and drop blocks from the Blocks panel to start building your page.</p>
+          </div>
+        `);
+      }
+    };
 
-    editor.setStyle(`
-      .container {
-        padding: 20px;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-      h1 {
-        font-size: 2em;
-        margin-bottom: 0.5em;
-      }
-    `);
+    editor.on('load', () => {
+      loadDefaultContent();
+    });
 
     this.addCustomCommands(editor);
 
